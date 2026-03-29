@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>M'ITeny — Présentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@900&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    /* ============================================================
+       DESIGN TOKENS
+    ============================================================ */
+    :root {
+      --yellow:  #FFD600;
+      --blue:    #1565C0;
+      --navy:    #0D1B3E;
+      --white:   #FAFAFA;
+      --grey:    #F4F4F2;
+      --text:    #1A1A2E;
+      --accent:  #FF6B00;
+
+      --display: 'Bebas Neue', 'Montserrat', sans-serif;
+      --body:    'Poppins', sans-serif;
+
+      --slide-h: 100vh;
+    }
+
+    /* ============================================================
+       RESET & BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: var(--navy); }
+
+    body {
+      font-family: var(--body);
+      font-weight: 300;
+      color: var(--text);
+    }
+
+    /* ============================================================
+       SLIDE ENGINE
+    ============================================================ */
+    #deck {
+      position: fixed;
+      inset: 0;
+      overflow: hidden;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+
+      /* transition placeholders — overridden by JS classes */
+      transition: transform 0.72s cubic-bezier(0.77,0,0.175,1),
+                  opacity 0.72s ease;
+
+      transform: translateY(100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .slide.active {
+      transform: translateY(0);
+      opacity: 1;
+      pointer-events: all;
+    }
+    .slide.exit-up {
+      transform: translateY(-100%);
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    /* ============================================================
+       SLIDE THEMES
+    ============================================================ */
+    /* 1: hero — blanc */
+    #slide-1  { background: var(--white); }
+    /* 2: concept — blanc */
+    #slide-2  { background: var(--white); }
+    /* 3: vision — jaune */
+    #slide-3  { background: var(--yellow); }
+    /* 4: valeurs — blanc */
+    #slide-4  { background: var(--white); }
+    /* 5: cibles — bleu clair */
+    #slide-5  { background: var(--grey); }
+    /* 6: activités 1 — blanc */
+    #slide-6  { background: var(--white); }
+    /* 7: activités 2 — jaune */
+    #slide-7  { background: var(--yellow); }
+    /* 8: dev perso — blanc */
+    #slide-8  { background: var(--white); }
+    /* 9: orga 1 — gris clair */
+    #slide-9  { background: var(--grey); }
+    /* 10: orga 2 — blanc */
+    #slide-10 { background: var(--white); }
+    /* 11: règles — bleu marine DARK */
+    #slide-11 { background: var(--navy); color: var(--white); }
+    /* 12: rejoignez — bleu foncé */
+    #slide-12 { background: var(--blue); color: var(--white); }
+
+    /* ============================================================
+       PROGRESS DOTS
+    ============================================================ */
+    #dots {
+      position: fixed;
+      right: 28px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 999;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.35);
+      border: 1.5px solid rgba(255,255,255,0.6);
+      cursor: pointer;
+      transition: background 0.3s, transform 0.3s;
+    }
+    .dot.on {
+      background: var(--yellow);
+      border-color: var(--yellow);
+      transform: scale(1.5);
+    }
+
+    /* ============================================================
+       FLOATING SHAPES (background layer)
+    ============================================================ */
+    .shapes {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+    .shape {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.13;
+    }
+
+    /* per-slide shape colors */
+    #slide-1  .shape, #slide-2  .shape,
+    #slide-4  .shape, #slide-6  .shape,
+    #slide-8  .shape, #slide-10 .shape { background: var(--blue); }
+
+    #slide-3  .shape, #slide-7  .shape { background: var(--navy); }
+    #slide-5  .shape { background: var(--blue); }
+    #slide-9  .shape { background: var(--blue); }
+    #slide-11 .shape { background: var(--yellow); opacity: 0.08; }
+    #slide-12 .shape { background: var(--yellow); opacity: 0.15; }
+
+    /* Individual shape sizes & positions — unique per slide */
+    .sh-a { width:380px; height:380px; top:-120px; left:-100px; animation: floatA 9s ease-in-out infinite; }
+    .sh-b { width:220px; height:220px; bottom:-60px; right:-50px; animation: floatB 11s ease-in-out infinite; }
+    .sh-c { width:140px; height:140px; top:55%; left:75%; animation: floatC 7s ease-in-out infinite; }
+    .sh-d { width:90px;  height:90px;  top:20%; right:15%; border-radius: 20%; animation: floatD 8s ease-in-out infinite; }
+    /* accent rectangle */
+    .sh-rect {
+      position: absolute;
+      border-radius: 12px;
+      opacity: 0.10;
+    }
+    .sh-r1 { width:60px; height:200px; bottom:15%; left:10%; background:var(--yellow); animation: floatA 12s ease-in-out infinite; }
+    .sh-r2 { width:200px; height:60px; top:10%; right:8%;  background:var(--yellow); animation: floatB 10s ease-in-out infinite; }
+
+    @keyframes floatA {
+      0%,100% { transform: translate(0,0) rotate(0deg); }
+      50%      { transform: translate(18px,-22px) rotate(8deg); }
+    }
+    @keyframes floatB {
+      0%,100% { transform: translate(0,0) rotate(0deg); }
+      50%      { transform: translate(-14px,20px) rotate(-10deg); }
+    }
+    @keyframes floatC {
+      0%,100% { transform: translate(0,0); }
+      50%      { transform: translate(10px,-16px); }
+    }
+    @keyframes floatD {
+      0%,100% { transform: translate(0,0) rotate(0deg); }
+      50%      { transform: translate(-8px,12px) rotate(25deg); }
+    }
+
+    /* ============================================================
+       SLIDE CONTENT LAYER
+    ============================================================ */
+    .content {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 960px;
+      padding: 48px 40px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    /* ============================================================
+       LOGO
+    ============================================================ */
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo-wrap img {
+      height: 100px;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.12));
+    }
+
+    /* ============================================================
+       LABEL CHIP
+    ============================================================ */
+    .chip {
+      display: inline-block;
+      background: var(--yellow);
+      color: var(--navy);
+      font-family: var(--body);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 6px 18px;
+      border-radius: 999px;
+    }
+    .chip.blue { background: var(--blue); color: var(--white); }
+    .chip.white { background: var(--white); color: var(--navy); }
+
+    /* ============================================================
+       DISPLAY TITLES
+    ============================================================ */
+    .display {
+      font-family: var(--display);
+      font-size: clamp(48px, 9vw, 110px);
+      line-height: 1;
+      text-align: center;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .display .hi { color: var(--yellow); }
+    .display .hi-blue { color: var(--blue); }
+    .display .hi-navy { color: var(--navy); }
+    .display .hi-white { color: var(--white); }
+
+    .title-md {
+      font-family: var(--display);
+      font-size: clamp(32px, 6vw, 68px);
+      line-height: 1;
+      text-align: center;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* section label above title */
+    .section-label {
+      font-family: var(--body);
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      opacity: 0.5;
+      text-align: center;
+    }
+
+    /* subtitle */
+    .subtitle {
+      font-family: var(--body);
+      font-size: clamp(14px, 2vw, 20px);
+      font-weight: 300;
+      text-align: center;
+      max-width: 560px;
+      line-height: 1.6;
+      opacity: 0.75;
+    }
+
+    /* ============================================================
+       CARD GRID
+    ============================================================ */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      width: 100%;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 18px;
+      padding: 22px 20px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      border-top: 4px solid var(--yellow);
+      transition: transform 0.25s ease;
+    }
+    .card:hover { transform: translateY(-4px); }
+    .card .card-title {
+      font-family: var(--display);
+      font-size: 20px;
+      letter-spacing: 1px;
+      color: var(--blue);
+    }
+    .card p {
+      font-size: 13px;
+      line-height: 1.55;
+      opacity: 0.72;
+    }
+
+    /* valeurs card dark variant */
+    .card.dark {
+      background: var(--navy);
+      color: var(--white);
+      border-top-color: var(--yellow);
+    }
+    .card.dark .card-title { color: var(--yellow); }
+    .card.dark p { opacity: 0.7; }
+
+    /* ============================================================
+       TWO-COLUMN LAYOUT
+    ============================================================ */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      width: 100%;
+    }
+    @media (max-width: 640px) {
+      .two-col { grid-template-columns: 1fr; }
+    }
+
+    .col-block {
+      background: rgba(255,255,255,0.55);
+      border-radius: 18px;
+      padding: 24px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      backdrop-filter: blur(6px);
+    }
+    #slide-11 .col-block {
+      background: rgba(255,255,255,0.06);
+    }
+    #slide-7 .col-block {
+      background: rgba(13,27,62,0.08);
+    }
+    .col-block h3 {
+      font-family: var(--display);
+      font-size: clamp(18px, 3vw, 26px);
+      letter-spacing: 1px;
+      color: var(--blue);
+    }
+    #slide-11 .col-block h3 { color: var(--yellow); }
+    #slide-7  .col-block h3 { color: var(--navy); }
+
+    .col-block ul { list-style: none; display: flex; flex-direction: column; gap: 8px; }
+    .col-block ul li {
+      font-size: 13px;
+      line-height: 1.5;
+      padding-left: 18px;
+      position: relative;
+    }
+    .col-block ul li::before {
+      content: '▶';
+      position: absolute;
+      left: 0;
+      font-size: 8px;
+      top: 4px;
+      color: var(--yellow);
+    }
+    #slide-11 .col-block ul li { color: rgba(255,255,255,0.8); }
+    #slide-7  .col-block ul li { color: var(--navy); }
+
+    /* ============================================================
+       QUOTE
+    ============================================================ */
+    .quote-block {
+      border-left: 5px solid var(--yellow);
+      padding: 18px 24px;
+      background: rgba(255,214,0,0.08);
+      border-radius: 0 14px 14px 0;
+      font-size: clamp(14px, 2vw, 18px);
+      font-style: italic;
+      line-height: 1.6;
+      max-width: 640px;
+      text-align: left;
+    }
+
+    /* ============================================================
+       BULLET LIST (standalone)
+    ============================================================ */
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-width: 580px;
+      width: 100%;
+      text-align: left;
+    }
+    .bullet-list li {
+      font-size: clamp(13px, 1.8vw, 16px);
+      padding-left: 24px;
+      position: relative;
+      line-height: 1.55;
+    }
+    .bullet-list li::before {
+      content: '◆';
+      position: absolute;
+      left: 0;
+      color: var(--yellow);
+      font-size: 10px;
+      top: 4px;
+    }
+    .bullet-list li strong { color: var(--blue); font-weight: 600; }
+    #slide-11 .bullet-list li strong { color: var(--yellow); }
+    #slide-11 .bullet-list li { color: rgba(255,255,255,0.85); }
+
+    /* ============================================================
+       SLIDE 1 — HERO
+    ============================================================ */
+    #slide-1 .hero-title {
+      font-family: var(--display);
+      font-size: clamp(80px, 16vw, 180px);
+      line-height: 0.9;
+      letter-spacing: -1px;
+      text-transform: uppercase;
+      text-align: center;
+    }
+    #slide-1 .hero-title span { color: var(--yellow); }
+    #slide-1 .hero-sub {
+      font-size: clamp(14px, 2vw, 20px);
+      font-weight: 300;
+      opacity: 0.6;
+      text-align: center;
+    }
+    #slide-1 .hero-badge {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin-top: 8px;
+    }
+    #slide-1 .divider {
+      width: 80px; height: 4px;
+      background: var(--yellow);
+      border-radius: 2px;
+      margin: 4px auto;
+    }
+
+    /* ============================================================
+       SLIDE 9 — ORG CHART (hierarchy, no table)
+    ============================================================ */
+    .org-chart {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+    }
+    .org-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .org-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      background: var(--white);
+      border-radius: 16px;
+      padding: 14px 18px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+      min-width: 110px;
+      transition: transform 0.2s;
+    }
+    .org-card:hover { transform: translateY(-3px); }
+    .org-card.president {
+      border-top: 4px solid var(--yellow);
+      min-width: 140px;
+    }
+    .org-card.bureau {
+      border-top: 3px solid var(--blue);
+    }
+    .org-card.vacant {
+      border-top: 3px solid #ccc;
+      opacity: 0.6;
+    }
+    .org-avatar {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+      background: var(--grey);
+    }
+    .org-avatar-ph {
+      width: 48px; height: 48px;
+      border-radius: 50%;
+      background: var(--grey);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; color: #bbb;
+    }
+    .org-role {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--blue);
+      font-weight: 600;
+    }
+    .org-name {
+      font-family: var(--display);
+      font-size: 15px;
+      letter-spacing: 0.5px;
+    }
+    .org-connector {
+      width: 2px; height: 14px;
+      background: var(--yellow);
+      border-radius: 1px;
+    }
+
+    /* ============================================================
+       SLIDE 12 — CTA + QR SPLIT
+    ============================================================ */
+    #slide-12 .cta-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      width: 100%;
+      align-items: center;
+    }
+    @media (max-width: 640px) {
+      #slide-12 .cta-split { grid-template-columns: 1fr; }
+    }
+    #slide-12 .cta-left { display: flex; flex-direction: column; gap: 20px; }
+    #slide-12 .cta-right {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      background: rgba(255,255,255,0.1);
+      border-radius: 24px;
+      padding: 32px;
+      border: 2px solid rgba(255,214,0,0.3);
+    }
+    #slide-12 .qr-img {
+      width: 100%;
+      max-width: 200px;
+      border-radius: 12px;
+      background: white;
+      padding: 10px;
+    }
+    #slide-12 .qr-label {
+      font-size: 12px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      opacity: 0.6;
+      text-align: center;
+    }
+    #slide-12 .cta-slogan {
+      font-family: var(--display);
+      font-size: clamp(22px, 4vw, 42px);
+      line-height: 1.05;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    #slide-12 .cta-slogan span { color: var(--yellow); }
+    #slide-12 .bullet-list li { color: rgba(255,255,255,0.85); }
+    #slide-12 .bullet-list li strong { color: var(--yellow); }
+
+    /* ============================================================
+       ENTER ANIMATIONS (stagger on .active)
+    ============================================================ */
+    .slide.active .anim-up {
+      animation: anim-up 0.65s cubic-bezier(0.25,0.46,0.45,0.94) both;
+    }
+    .slide.active .anim-up:nth-child(1) { animation-delay: 0.05s; }
+    .slide.active .anim-up:nth-child(2) { animation-delay: 0.15s; }
+    .slide.active .anim-up:nth-child(3) { animation-delay: 0.25s; }
+    .slide.active .anim-up:nth-child(4) { animation-delay: 0.35s; }
+    .slide.active .anim-up:nth-child(5) { animation-delay: 0.45s; }
+    .slide.active .anim-up:nth-child(6) { animation-delay: 0.52s; }
+
+    @keyframes anim-up {
+      from { opacity: 0; transform: translateY(28px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* hero scale in */
+    .slide.active .anim-scale {
+      animation: anim-scale 0.8s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes anim-scale {
+      from { opacity: 0; transform: scale(0.82); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    /* ============================================================
+       SLIDE NUMBER INDICATOR
+    ============================================================ */
+    #slide-num {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--display);
+      font-size: 13px;
+      letter-spacing: 3px;
+      color: rgba(255,255,255,0.4);
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    /* ============================================================
+       KEYBOARD HINT (fade out)
+    ============================================================ */
+    #kb-hint {
+      position: fixed;
+      bottom: 56px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--body);
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: rgba(255,255,255,0.3);
+      z-index: 999;
+      pointer-events: none;
+      animation: hint-fade 4s ease forwards;
+    }
+    @keyframes hint-fade {
+      0%,60% { opacity: 1; }
+      100%    { opacity: 0; }
+    }
+
+    /* ============================================================
+       REMOVE OLD NAV LINKS
+    ============================================================ */
+    nav { display: none !important; }
+    .slide-container header { display: none !important; }
+  </style>
+</head>
+<body>
+
+<!-- PROGRESS DOTS -->
+<div id="dots"></div>
+
+<!-- SLIDE NUMBER -->
+<div id="slide-num">01 / 12</div>
+
+<!-- KEYBOARD HINT -->
+<div id="kb-hint">↑ ↓ ← → pour naviguer</div>
+
+<!-- ======================================================== -->
+<!-- DECK -->
+<!-- ======================================================== -->
+<div id="deck">
+
+  <!-- ===== SLIDE 1 — HERO ===== -->
+  <div id="slide-1" class="slide active">
+    <div class="shapes">
+      <div class="shape sh-a"></div>
+      <div class="shape sh-b"></div>
+      <div class="shape sh-c"></div>
+      <div class="shape sh-d"></div>
+      <div class="sh-rect sh-r1"></div>
+      <div class="sh-rect sh-r2"></div>
+    </div>
+    <div class="content">
+      <div class="logo-wrap anim-up">
+        <img src="img/ITU.jpg" alt="ITU">
+      </div>
+      <div class="divider anim-up"></div>
+      <h1 class="hero-title anim-scale">
+        M'<span>ITeny</span>
+      </h1>
+      <p class="hero-sub anim-up">S'exprimer avec <strong>audace</strong>, apprendre avec <strong>plaisir</strong></p>
+      <div class="hero-badge anim-up">
+        <div class="chip blue">Club de Communication</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 2 — CONCEPT ===== -->
+  <div id="slide-2" class="slide">
+    <div class="shapes">
+      <div class="shape sh-a"></div>
+      <div class="shape sh-b"></div>
+      <div class="shape sh-c"></div>
+      <div class="sh-rect sh-r2"></div>
+    </div>
+    <div class="content">
+      <span class="section-label anim-up">01 — Concept</span>
+      <h2 class="title-md anim-up">Qui <span style="color:var(--yellow)">sommes-nous ?</span></h2>
+      <div class="quote-block anim-up">
+        « La parole est un outil puissant de leadership et de cohésion sociale. »
+      </div>
+      <ul class="bullet-list anim-up">
+        <li>Association étudiante dédiée à la <strong>maîtrise de la parole</strong> et à l'<strong>éloquence</strong></li>
+        <li>Ouverte à <strong>tous les étudiants ITU</strong> — toutes filières, tous niveaux</li>
+        <li>Un espace <strong>bienveillant et sans jugement</strong> pour apprendre à s'exprimer</li>
+        <li>Du profil le plus introverti au futur grand orateur — <strong>tout le monde a sa place</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 3 — VISION (YELLOW DARK) ===== -->
+  <div id="slide-3" class="slide">
+    <div class="shapes">
+      <div class="shape sh-a"></div>
+      <div class="shape sh-b"></div>
+      <div class="shape sh-c"></div>
+      <div class="shape sh-d"></div>
+    </div>
+    <div class="content">
+      <span class="section-label anim-up" style="color:var(--navy); opacity:0.5;">02 — Vision</span>
+      <h2 class="title-md anim-up" style="color:var(--navy);">Devenir la <span style="color:var(--blue)">référence</span><br>de l'éloquence à ITU</h2>
+      <div class="card-grid anim-up" style="margin-top:8px;">
+        <div class="card dark">
+          <div class="card-title">Réussite</div>
+          <p>Un levier de réussite professionnelle durable</p>
+        </div>
+        <div class="card dark">
+          <div class="card-title">Émancipation</div>
+          <p>Un outil d'émancipation personnelle profond</p>
+        </div>
+        <div class="card dark">
+          <div class="card-title">Conviction</div>
+          <p>Une force de conviction accessible à chaque étudiant</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 4 — VALEURS ===== -->
+  <div id="slide-4" class="slide">
+    <div class="shapes">
+      <div class="shape sh-a"></div>
+      <div class="shape sh-b"></div>
+      <div class="shape sh-c"></div>
+      <div class="sh-rect sh-r1"></div>
+    </div>
+    <div class="content">
+      <span class="section-label anim-up">03 — Valeurs</span>
+      <h2 class="title-md anim-up">Ce en quoi <span style="color:var(--yellow)">nous croyons</span></h2>
+      <div class="card-grid anim-up">
+        <div class="card">
+          <div class="card-title">Éloquence</div>
+          <p>Maîtrise de la parole et force de conviction</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Audace</div>
+          <p>Oser prendre la parole, surmonter ses appréhensions</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Écoute</div>
+          <p>Respect de l'autre, ouverture au débat contradictoire</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Esprit Critique</div>
+          <p>Analyser, structurer sa pensée, argumenter avec justesse</p>
+        </div>
+        <div class="card">
+          <div class="card-title">Immersion</div>
+          <p>Apprendre par le jeu — simulations, MUN, tribunaux</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 5 — CIBLES ===== -->
+  <div id="slide-5" class="slide">
+    <div class="shapes">
+      <div class="shape sh-a"></div>
+      <div class="shape sh-b"></div>
+      <div class="shape sh-c"></div>
+      <div class="sh-rect sh-r1"></div>
+      <div class="sh-rect sh-r2"></div>
+    </div>
+    <div class="content">
+      <span class="section-label anim-up">04 — Cibles</span>
+      <h2 class="title-md anim-up">Nous <span style="color:var(--yellow)">recherchons</span></h2>
+      <ul class="bullet-list anim-up">
+        <li><strong>Introvertis et timides</strong> souhaitant sortir de leur zone de confort</li>
+        <li><strong>Passionnés de rhétorique et de débat</strong> voulant affiner leur technique</li>
+        <li><strong>Futurs leaders et délégués</strong> intéressés par la diplomatie (MUN) ou le droit</li>
+        <li><strong>Esprits curieux et bienveillants</strong> capables d'écouter et de travailler en équipe</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 6 — ACTIVITÉS 1 ===== -->
+  <div id="slide-6" class="slide">
+    <div class="shapes">
+      <div class="shape sh-a"></div>
+      <div class="shape sh-b"></div>
+      <div class="shape sh-c"></div>
+      <div class="sh-rect sh-r2"></div>
+    </div>
+    <div class="content">
+      <span class="section-label anim-up">05 — Activités 1/2</span>
+      <h2 class="title-md anim-up">Formation <span style="color:var(--yellow)">&</span> Débats</h2>
+      <div class="two-col anim-up">
+        <div class="col-block">
+          <h3>Formation & Ateliers</h3>
+          <ul>
+            <li>Initiation à la prise de parole en public</li>
+            <li>Gestion du stress et du langage corporel</li>
+            <li>Diction, respiration, pose de voix</li>
+            <li>Structuration de discours</li>
+          </ul>
+        </div>
+        <div class="col-block">
+          <h3>Débats & Joutes</h3>
+          <ul>
+            <li>Débats contradictoires sur des sujets d'actualité</li>
+            <li>Argumentation rapide et répartie</li>
+            <li>Sessions de <strong>Pitch</strong> — convaincre en peu de temps</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 7 — ACTIVITÉS 2 (YELLOW) ===== -->
+  <div id="slide-7" class="slide">
+    <div class="shapes">
+      <div class="shape sh-a"></div>
+      <div class="shape sh-b"></div>
+      <div class="shape sh-c"></div>
+      <div class="shape sh-d"></div>
+    </div>
+    <div class="content">
+      <span class="section-label anim-up" style="color:var(--navy); opacity:0.5;">06 — Activités 2/2</span>
+      <h2 class="title-md anim-up" style="color:var(--navy);">Simulations <span style="color:var(--blue)">&</span> Compétitions</h2>
+      <div class="two-col anim-up">
+        <div class="col-block">
+          <h3>Simulations Immersives</h3>
+          <ul>
+            <li><strong>Tribunal</strong> : juges, avocats, procureurs, témoins</li>
+            <li><strong>MUN</strong> : simulez les instances de l'ONU</li>
+            <li><strong>Loup-Garou</strong> : narration et persuasion ludique</li>
+          </ul>
+        </div>
+        <div class="col-block">
+          <h3>Compétitions</h3>
+          <ul>
+            <li>Concours d'éloquence interne : <strong>M'ITeny Awards</strong></li>
+            <li>Compétitions inter-universitaires d'art oratoire</li>
+            <li>Représentation officielle de l'ITU</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 8 — DEV PERSO ===== -->
+  <div id="slide-8" class="slide">
+    <div class="shapes">
+      <div class="shape sh-a"></div>
+      <div class="shape sh-b"></div>
+      <div class="shape sh-c"></div>
+      <div class="sh-rect sh-r1"></div>
+    </div>
+    <div class="content">
+      <span class="section-label anim-up">07 — Développement Personnel</span>
+      <h2 class="title-md anim-up">Grandir <span style="color:var(--yellow)">ensemble</span></h2>
+      <ul class="bullet-list anim-up">
+        <li>Accompagnement spécifique des <strong>profils introvertis</strong></li>
+        <li>Exercices de <strong>confiance en soi</strong> et d'affirmation de ses opinions</li>
+        <li>Ateliers d'<strong>écoute active</strong> et de respect du temps de parole</li>
+        <li><strong>Ice Breaking</strong>, networking et partages inter-promotions (L1 → Master)</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 9 — ORGANISATION 1 (ORG CHART) ===== -->
+  <div id="slide-9" class="slide">
+    <div class="shapes">
+      <div class="shape sh-a"></div>
+      <div class="shape sh-b"></div>
+      <div class="shape sh-c"></div>
+      <div class="sh-rect sh-r2"></div>
+    </div>
+    <div class="content">
+      <span class="section-label anim-up">08 — Organisation 1/3</span>
+      <h2 class="title-md anim-up">Bureau <span style="color:var(--yellow)">Exécutif</span> </h2>
+      <div class="org-chart anim-up">
+        <!-- Président -->
+        <div class="org-row">
+          <div class="org-card president">
+            <img src="img/berthin.jpg" class="org-avatar" alt="Berthin" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="org-avatar-ph" style="display:none">🎤</div>
+            <span class="org-role">Président</span>
+            <span class="org-name">Berthin</span>
+          </div>
+        </div>
+        <div class="org-connector"></div>
+        <!-- VP + Secrétaire + Trésorier -->
+        <div class="org-row">
+          <div class="org-card bureau">
+            <img src="img/nathan.jpg" class="org-avatar" alt="Nathan" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="org-avatar-ph" style="display:none">👤</div>
+            <span class="org-role">Vice-Président</span>
+            <span class="org-name">Nathan</span>
+          </div>
+          <div class="org-card bureau">
+            <img src="img/elia.jpg" class="org-avatar" alt="Elia" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="org-avatar-ph" style="display:none">👤</div>
+            <span class="org-role">Secrétaire</span>
+            <span class="org-name">Elia</span>
+          </div>
+          <div class="org-card bureau">
+            <img src="img/tsiky.jpg" class="org-avatar" alt="Tsiky" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="org-avatar-ph" style="display:none">👤</div>
+            <span class="org-role">Trésorier</span>
+            <span class="org-name">Tsiky</span>
+          </div>
+        </div>
+        <div class="org-connector"></div>
+        <!-- Relations + Comm + Péda -->
+        <div class="org-row">
+          <div class="org-card bureau">
+            <img src="img/tsiory.jpg" class="org-avatar" alt="Tsiory" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+            <div class="org-avatar-ph" style="display:none">👤</div>
+            <span class="org-role">Pédagogie</span>
+            <span class="org-name">Tsiory</span>
+          </div>
+          <div class="org-card vacant">
+            <div class="org-avatar-ph">?</div>
+            <span class="org-role">Communication</span>
+            <span class="org-name" style="font-style:italic;font-size:12px;font-family:var(--body)">À pourvoir</span>
+          </div>
+          <div class="org-card vacant">
+            <div class="org-avatar-ph">?</div>
+            <span class="org-role">Relations Ext.</span>
+            <span class="org-name" style="font-style:italic;font-size:12px;font-family:var(--body)">À pourvoir</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 10 — ORGANISATION 2 ===== -->
+  <div id="slide-10" class="slide">
+    <div class="shapes">
+      <div class="shape sh-a"></div>
+      <div class="shape sh-b"></div>
+      <div class="shape sh-c"></div>
+      <div class="sh-rect sh-r1"></div>
+    </div>
+    <div class="content">
+      <span class="section-label anim-up">09 — Organisation 2/3</span>
+      <h2 class="title-md anim-up">Animations <span style="color:var(--yellow)">par Tour</span></h2>
+      <ul class="bullet-list anim-up">
+        <li>Un ou plusieurs membres <strong>proposent les activités</strong> avec le budget nécessaire</li>
+        <li>Le bureau <strong>décide de la date et des fonds mobilisables</strong> à cette activité</li>
+        <li>Les membres désignés deviennent <strong>chefs d'activité</strong> pour la période</li>
+        <li>Tout le monde va préparer et animer <strong>une ou plusieurs activités</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 11 — RÈGLES (DARK NAVY) ===== -->
+  <div id="slide-11" class="slide">
+    <div class="shapes">
+      <div class="shape sh-a"></div>
+      <div class="shape sh-b"></div>
+      <div class="shape sh-c"></div>
+      <div class="shape sh-d"></div>
+      <div class="sh-rect sh-r1" style="background:var(--yellow);"></div>
+      <div class="sh-rect sh-r2" style="background:var(--yellow);"></div>
+    </div>
+    <div class="content">
+      <span class="section-label anim-up" style="color:rgba(255,255,255,0.4);">10 — Organisation 3/3</span>
+      <h2 class="title-md anim-up" style="color:var(--white);">Nos <span style="color:var(--yellow)">Règles</span> du Jeu</h2>
+      <div class="two-col anim-up">
+        <div class="col-block">
+          <h3>Contrat de confiance</h3>
+          <ul>
+            <li><strong>Bienveillance</strong> — Zéro jugement, droit à l'erreur garanti</li>
+            <li><strong>Confidentialité</strong> — Ce qui se passe en atelier reste en atelier</li>
+            <li><strong>Contradiction</strong> — On attaque les idées, jamais les personnes</li>
+            <li><strong>Assiduité</strong> — S'engager pour progresser collectivement</li>
+          </ul>
+        </div>
+        <div class="col-block">
+          <h3>Interdits formels</h3>
+          <ul>
+            <li>Moqueries et dénigrement <strong>interdits</strong></li>
+            <li>Attaques personnelles (ad hominem) <strong>interdites</strong></li>
+            <li>Propos discriminatoires <strong>strictement proscrits</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SLIDE 12 — CTA (BLUE) ===== -->
+  <div id="slide-12" class="slide">
+    <div class="shapes">
+      <div class="shape sh-a"></div>
+      <div class="shape sh-b"></div>
+      <div class="shape sh-c"></div>
+      <div class="shape sh-d"></div>
+    </div>
+    <div class="content" style="max-width:1000px;">
+      <span class="section-label anim-up" style="color:rgba(255,255,255,0.4);">11 — Rejoignez-nous</span>
+      <div class="cta-split anim-up">
+        <div class="cta-left">
+          <div class="cta-slogan">Parce que chaque<br>voix mérite de<br><span>résonner.</span></div>
+          <ul class="bullet-list">
+            <li>Transformer votre <strong>peur de parler</strong> en une force</li>
+            <li>Préparer votre <strong>avenir professionnel</strong> dès aujourd'hui</li>
+            <li>Vivre des expériences <strong>immersives et inoubliables</strong></li>
+            <li>Faire partie d'une <strong>communauté soudée et ambitieuse</strong></li>
+          </ul>
+          <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <div class="chip white">Club de Communication</div>
+            <div class="chip" style="background:var(--yellow); color:var(--navy);">IT University 2025–2026</div>
+          </div>
+        </div>
+        <div class="cta-right">
+          <div class="chip" style="background:var(--yellow); color:var(--navy);">Inscription</div>
+          <img src="img/codeQr.jpg" class="qr-img" alt="QR Code inscription"
+               onerror="this.style.background='#fff'; this.style.width='160px'; this.style.height='160px';">
+          <p class="qr-label">Scannez pour accéder au formulaire</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end #deck -->
+
+<script>
+  /* ============================================================
+     SLIDE ENGINE
+  ============================================================ */
+  const TOTAL = 12;
+  let current = 1;
+  let animating = false;
+
+  const dotsContainer = document.getElementById('dots');
+  const numEl = document.getElementById('slide-num');
+
+  // Build dots
+  for (let i = 1; i <= TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 1 ? ' on' : '');
+    d.addEventListener('click', () => goTo(i));
+    dotsContainer.appendChild(d);
+  }
+
+  function updateDots() {
+    document.querySelectorAll('.dot').forEach((d, i) => {
+      d.classList.toggle('on', i + 1 === current);
+    });
+  }
+
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function goTo(next) {
+    if (animating || next === current || next < 1 || next > TOTAL) return;
+    animating = true;
+
+    const from = document.getElementById('slide-' + current);
+    const to   = document.getElementById('slide-' + next);
+    const goingDown = next > current;
+
+    // Reset incoming slide position
+    to.style.transform = goingDown ? 'translateY(100%)' : 'translateY(-100%)';
+    to.style.opacity = '0';
+    to.classList.remove('active', 'exit-up');
+
+    // Force reflow
+    void to.offsetWidth;
+
+    // Animate out
+    from.style.transform = goingDown ? 'translateY(-100%)' : 'translateY(100%)';
+    from.style.opacity = '0';
+    from.classList.remove('active');
+
+    // Animate in
+    to.style.transform = 'translateY(0)';
+    to.style.opacity = '1';
+    to.classList.add('active');
+
+    // Re-trigger stagger animations by removing and re-adding class
+    to.querySelectorAll('.anim-up, .anim-scale').forEach(el => {
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = '';
+    });
+
+    current = next;
+    updateDots();
+    numEl.textContent = pad(current) + ' / ' + pad(TOTAL);
+
+    setTimeout(() => {
+      from.style.transform = '';
+      from.style.opacity = '';
+      animating = false;
+    }, 750);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowRight') goTo(current + 1);
+    if (e.key === 'ArrowUp'   || e.key === 'ArrowLeft')  goTo(current - 1);
+  });
+
+  // Remove old nav links from original HTML (already hidden via CSS)
+</script>
+</body>
+</html>
