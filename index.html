@@ -80,6 +80,21 @@
     }
 
     /* ============================================================
+       RESPONSIVE — ALLOW SCROLLABLE SLIDES ON SMALL SCREENS
+    ============================================================ */
+    @media (max-width: 768px) {
+      .slide {
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        justify-content: flex-start;
+        padding: 30px 20px;
+      }
+      .content {
+        padding: 20px !important;
+      }
+    }
+
+    /* ============================================================
        SLIDE THEMES
     ============================================================ */
     /* 1: hero — blanc */
@@ -684,7 +699,7 @@
       </div>
       <div class="divider anim-up"></div>
       <h1 class="hero-title anim-scale">
-        M'<span>ITeny</span>
+        <span>M'</span>IT<span>eny</span>
       </h1>
       <p class="hero-sub anim-up">S'exprimer avec <strong>audace</strong>, apprendre avec <strong>plaisir</strong></p>
       <div class="hero-badge anim-up">
